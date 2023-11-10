@@ -1,8 +1,65 @@
 version: '3'
 
 services:
-  mariadb:
-    container_name: mariadb
-    build: ./requirements/mariadb
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    depends_on:
+      wordpress:
+        condition: service_started
+    env_file:
+      - .env
+    networks:
+      - net
+    ports:
+      - "443:443"
     restart: always
-      #restart: on-failure
+
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    cpus: 2
+    env_file:
+      - .env
+    mem_limit: 2G
+    networks:
+      - net
+    ports:
+      - "3306"
+    restart: on-failure
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+      #    depends_on:
+      #mariadb:
+      #condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - net
+    ports:
+      - "9000"
+    restart: on-failure
+    volumes:
+      - wordpress_data:/wp
+
+networks:
+  net:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./.data/mariadb
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./.data/wordpress

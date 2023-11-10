@@ -6,14 +6,14 @@
 #    By: tde-souz <tde-souz@student.42.rio>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/26 07:08:10 by tde-souz          #+#    #+#              #
-#    Updated: 2023/11/04 14:09:18 by tde-souz         ###   ########.fr        #
+#    Updated: 2023/11/05 15:14:17 by tde-souz         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # ******************************************************************************
 # *									SETTINGS								   *
 # ******************************************************************************
-NAME		:=	Inception
+NAME		:=	inception
 
 CURRENT_OS	:=	$(shell uname)
 #INCLUDES	=	-I libft/ -I includes 
@@ -38,6 +38,7 @@ INFO		:=	${YELLOW}INFO:\t${RESET}
 # *								   SOURCE FILES								   *
 # ******************************************************************************
 SRC		:=	./srcs
+DCF		:=	./srcs/docker-compose.yml
 
 # ******************************************************************************
 # *                                   RULES                                    *
@@ -46,27 +47,43 @@ all:		${NAME}
 
 ${NAME}: up
 	@printf '${TIME} ${START}${NAME} on ${CURRENT_OS}\n'
-	
-#	@docker build -t nginx42:inception srcs/requirements/nginx/
-#	@docker build -t mariadb42:inception srcs/requirements/mariadb/
-
-up:
-	@cd ${SRC} && docker compose up -d
-	@docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
-
-down: stop
-		@cd $(SRC) && docker compose down
-
-stop:
-		@cd $(SRC) && docker compose stop
 
 clean: down
-	@printf "${TIME} ${INFO}Remove specific images\n"
-	@docker images "srcs*" --format {{.ID}} | xargs -r docker rmi -f
+	@printf "${TIME} ${INFO}Removing images\n"
+	@docker images "${NAME}*" --format {{.ID}} | xargs -r docker rmi -f
+#	@docker images "srcs*" --format {{.ID}} | xargs -r docker rmi -f
 
 fclean:		clean
 	@printf "${TIME} ${INFO}Remove specific volumes\n"
+	@sudo rm -rf srcs/.data/
+	@docker volume ls --filter "Name=${NAME}*" --format "{{.Name}}" | xargs -r docker volume rm
 
-re:			fclean all
+re:	fclean all
+
+up:
+	@sudo mkdir -p srcs/.data/mariadb
+	@sudo mkdir -p srcs/.data/wordpress
+	@docker-compose -p ${NAME} -f ${DCF} up -d
+	@docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+
+down: stop
+	@docker-compose -p ${NAME} -f ${DCF} down
+
+stop:
+	@docker-compose -p ${NAME} -f ${DCF} stop
+
+log:
+	@docker-compose -p ${NAME} -f ${DCF} logs
+
+status:
+	@docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+
+debug:
+	@printf "${GOLD}██████████████████████ Containers ███████████████████████${RESET}\n"
+	@docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+	@printf "${GOLD}██████████████████████   Images   ███████████████████████${RESET}\n"
+	@docker images
+	@printf "${GOLD}██████████████████████   Volumes  ███████████████████████${RESET}\n"
+	@docker volume ls
 
 .PHONY: all clean fclean re leak
