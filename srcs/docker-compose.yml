@@ -1,20 +1,6 @@
 version: '3'
 
 services:
-  nginx:
-    build: ./requirements/nginx
-    container_name: nginx
-    depends_on:
-      wordpress:
-        condition: service_started
-    env_file:
-      - .env
-    networks:
-      - net
-    ports:
-      - "443:443"
-    restart: always
-
   mariadb:
     build: ./requirements/mariadb
     container_name: mariadb
@@ -29,6 +15,21 @@ services:
     restart: on-failure
     volumes:
       - mariadb_data:/var/lib/mysql
+  
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    depends_on:
+      wordpress:
+        condition: service_started
+    env_file:
+      - .env
+    networks:
+      - net
+    ports:
+      - "443:443"
+    restart: always
+
 
   wordpress:
     build: ./requirements/wordpress
