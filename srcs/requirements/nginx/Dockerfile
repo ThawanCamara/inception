@@ -1,12 +1,19 @@
-FROM alpine:3.17
+FROM	debian:bullseye
 
-RUN apk update && apk add --no-cache nginx openssl
+RUN	apt-get update && apt-get install -y nginx openssl
 
-COPY ./conf/nginx.conf /etc/nginx/
-COPY ./tools/ssl-script.sh /
+COPY	./conf/nginx.conf /etc/nginx/nginx.conf
+COPY	./conf/default.conf /etc/nginx/conf.d/default.conf
 
-RUN chmod +x /ssl-script.sh
-RUN ./ssl-script.sh
-RUN rm /ssl-script.sh
+COPY	./tools/nginx-cert.sh .
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+RUN	chown -R www-data:www-data /var/www/*
+RUN	chmod -R 777 /var/www/*
+
+RUN	chmod +x ./nginx-cert.sh
+
+RUN	./nginx-cert.sh
+
+EXPOSE	443
+
+CMD	["nginx", "-g", "daemon off;"]

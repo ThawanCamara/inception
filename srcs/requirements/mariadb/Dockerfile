@@ -1,25 +1,23 @@
-# Base image
-FROM debian:bullseye
+FROM	debian:bullseye		
 
-# Adding metadata
-LABEL maintainer="tde-souz" version="1.0"
-LABEL description="My custom MariaDB image"
+COPY	./tools/varfix.sh /etc/mysql/varfix.sh
+COPY	./tools/init.sql /etc/mysql/init.sql
+COPY	./conf/my.cnf /etc/mysql/my.cnf
 
-# Installation
-RUN apt update \
-&& apt install -y mariadb-server
+RUN	chmod +x /etc/mysql/varfix.sh && /etc/mysql/varfix.sh
 
-RUN mariadb-install-db --user=mysql --basedir=/usr --datadir=/database
+RUN	apt update && \
+	apt-get install -y mariadb-server mariadb-client && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
 
-# Set environment variables
+RUN	mkdir -p /var/run/mysqld &&\
+	chown -R mysql:mysql /var/run/mysqld /var/lib/mysql
+
+RUN	mariadb-install-db --user=mysql --basedir=/usr --datadir=/database
+
+EXPOSE 3306
+
+CMD ["mysqld", "--init-file=/etc/mysql/init.sql"]
 
 
-# Copy files into container
-COPY conf/maria-server.cnf /etc/mysql/mariadb.conf.d/maria-server.cnf
-COPY ./tools/create-db.sh /bin
-
-HEALTHCHECK --interval=10s --timeout=3s \
-	CMD mysqladmin ping -u root || exit 1
-
-# Default command
-ENTRYPOINT ["sh", "/bin/create-db.sh"]

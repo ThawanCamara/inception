@@ -1,82 +1,71 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: tde-souz <tde-souz@student.42.rio>         +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/04/26 07:08:10 by tde-souz          #+#    #+#              #
-#    Updated: 2023/11/05 15:14:17 by tde-souz         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+NAME		:= inception
+COMPOSE_FILE	:= ./srcs/docker-compose.yml
 
-# ******************************************************************************
-# *									SETTINGS								   *
-# ******************************************************************************
-NAME		:=	inception
+CONTAINER_NAME_MARIADB := mariadb
+CONTAINER_TAG_MARIADB := inception
+CONTAINER_NAME_WORDPRESS := wordpress
+CONTAINER_TAG_WORDPRESS := inception
 
-CURRENT_OS	:=	$(shell uname)
-#INCLUDES	=	-I libft/ -I includes 
-#LIBFT_DIR	:=	libft/
-#LIBFT		:=	libft
-#MLX			:=	libmlx
+IP_ADDR = 0.0.0.0
 
-# ******************************************************************************
-# *								   TEXT COLORS								   *
-# ******************************************************************************
-GREEN		:=	\e[38;5;118m
-YELLOW		:=	\e[38;5;11m
-GOLD		:=	\e[38;5;220m
-RESET		:=	\e[0m
-BOLD		:=	\e[1m
+DATA_PATH := ${HOME}/data
 
-TIME		:= \e[38;5;8m($(shell date +%H:%M:%S))${RESET}
-START		:=	${GREEN}START:\t${RESET}
-INFO		:=	${YELLOW}INFO:\t${RESET}
+# About:
+# Rule plug expects argument. Use like: make plug ARG=mariadb
+# Rule connect expects argument. Use like: make connect ARG=bobby
 
-# ******************************************************************************
-# *								   SOURCE FILES								   *
-# ******************************************************************************
-SRC		:=	./srcs
-DCF		:=	./srcs/docker-compose.yml
-
-# ******************************************************************************
-# *                                   RULES                                    *
-# ******************************************************************************
-all:		${NAME}
+all: ${NAME}
 
 ${NAME}: up
-	@printf '${TIME} ${START}${NAME} on ${CURRENT_OS}\n'
+	#@docker build -t ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB} .
+	#@docker build -t ${CONTAINER_NAME_WORDPRESS}:${CONTAINER_TAG_WORDPRESS} .
+	#@docker run -d --name ${CONTAINER_NAME_MARIADB} -p 3307:3306 ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB}
+	#@docker run -d --name ${CONTAINER_NAME_WORDPRESS} -p 9000:9000 ${CONTAINER_NAME_WORDPRESS}:${CONTAINER_TAG_WORDPRESS}
+	#@docker run -d --name ${CONTAINER_NAME_MARIADB} -p 127.0.0.1:3307:3306 ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB}
 
 clean: down
 	@printf "${TIME} ${INFO}Removing images\n"
 	@docker images "${NAME}*" --format {{.ID}} | xargs -r docker rmi -f
-#	@docker images "srcs*" --format {{.ID}} | xargs -r docker rmi -f
 
-fclean:		clean
+fclean: clean
 	@printf "${TIME} ${INFO}Remove specific volumes\n"
-	@sudo rm -rf srcs/.data/
-	@docker volume ls --filter "Name=${NAME}*" --format "{{.Name}}" | xargs -r docker volume rm
+	@docker volume ls --filter "Name=${NAME}*}" --format "{{.NAME}}" | xargs -r docker volume rm
+	@sudo rm -rf ${DATA_PATH}
 
-re:	fclean all
+re: fclean all
+
+#clean:
+#	@echo "Stopping Containers"
+#	#@docker stop ${CONTAINER_NAME_MARIADB}
+#	#@docker stop ${CONTAINER_NAME_WORDPRESS}
+#	@echo "Removing Containers"
+#	#@docker rm ${CONTAINER_NAME_MARIADB}
+#	#@docker rm ${CONTAINER_NAME_WORDPRESS}
+#	@echo "Removing Images"
+#	#@docker rmi ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB}
+#	#@docker rmi ${CONTAINER_NAME_WORDPRESS}:${CONTAINER_TAG_WORDPRESS}
 
 up:
-	@sudo mkdir -p srcs/.data/mariadb
-	@sudo mkdir -p srcs/.data/wordpress
-	@docker-compose -p ${NAME} -f ${DCF} up -d
+	sudo mkdir -p ${DATA_PATH}/mariadb/
+	sudo mkdir -p ${DATA_PATH}/wordpress/
+	@docker-compose -p ${NAME} -f ${COMPOSE_FILE} up -d --build
 	@docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 
-down: stop
-	@docker-compose -p ${NAME} -f ${DCF} down
+down: stop	
+	@docker compose -p ${NAME} -f ${COMPOSE_FILE} down --volumes
 
 stop:
-	@docker-compose -p ${NAME} -f ${DCF} stop
+	@docker compose -p ${NAME} -f ${COMPOSE_FILE} stop
 
 log:
-	@docker-compose -p ${NAME} -f ${DCF} logs
+	@docker compose -p ${NAME} -f ${COMPOSE_FILE} logs	
 
-status:
-	@docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+plug:
+	@docker exec -it ${ARG} /bin/bash
+
+connect:
+	$(eval override IP_ADDR := $(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME_MARIADB}))
+	mysql -h ${IP_ADDR} -P 3306 -u ${ARG} -p
 
 debug:
 	@printf "${GOLD}██████████████████████ Containers ███████████████████████${RESET}\n"
@@ -86,4 +75,4 @@ debug:
 	@printf "${GOLD}██████████████████████   Volumes  ███████████████████████${RESET}\n"
 	@docker volume ls
 
-.PHONY: all clean fclean re leak
+.PHONY: all clean fclean re plug connect
