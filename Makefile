@@ -36,7 +36,7 @@ up:
 	@docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 
 down: stop	
-	@docker compose -p ${NAME} -f ${COMPOSE_FILE} down --volumes
+	@docker compose -p ${NAME} -f ${COMPOSE_FILE} down
 
 stop:
 	@docker compose -p ${NAME} -f ${COMPOSE_FILE} stop
