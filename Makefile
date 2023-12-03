@@ -17,11 +17,6 @@ DATA_PATH := ${HOME}/data
 all: ${NAME}
 
 ${NAME}: up
-	#@docker build -t ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB} .
-	#@docker build -t ${CONTAINER_NAME_WORDPRESS}:${CONTAINER_TAG_WORDPRESS} .
-	#@docker run -d --name ${CONTAINER_NAME_MARIADB} -p 3307:3306 ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB}
-	#@docker run -d --name ${CONTAINER_NAME_WORDPRESS} -p 9000:9000 ${CONTAINER_NAME_WORDPRESS}:${CONTAINER_TAG_WORDPRESS}
-	#@docker run -d --name ${CONTAINER_NAME_MARIADB} -p 127.0.0.1:3307:3306 ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB}
 
 clean: down
 	@printf "${TIME} ${INFO}Removing images\n"
@@ -33,17 +28,6 @@ fclean: clean
 	@sudo rm -rf ${DATA_PATH}
 
 re: fclean all
-
-#clean:
-#	@echo "Stopping Containers"
-#	#@docker stop ${CONTAINER_NAME_MARIADB}
-#	#@docker stop ${CONTAINER_NAME_WORDPRESS}
-#	@echo "Removing Containers"
-#	#@docker rm ${CONTAINER_NAME_MARIADB}
-#	#@docker rm ${CONTAINER_NAME_WORDPRESS}
-#	@echo "Removing Images"
-#	#@docker rmi ${CONTAINER_NAME_MARIADB}:${CONTAINER_TAG_MARIADB}
-#	#@docker rmi ${CONTAINER_NAME_WORDPRESS}:${CONTAINER_TAG_WORDPRESS}
 
 up:
 	sudo mkdir -p ${DATA_PATH}/mariadb/

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -f "/var/www/html/var/www/html-config.php" ]; then
+if [ ! -f "/var/www/html/wp-config.php" ]; then
 echo "switch to /var/www/html"
 cd /var/www/html
 
