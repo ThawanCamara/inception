@@ -24,7 +24,7 @@ clean: down
 
 fclean: clean
 	@printf "${TIME} ${INFO}Remove specific volumes\n"
-	@docker volume ls --filter "Name=${NAME}*}" --format "{{.NAME}}" | xargs -r docker volume rm
+	@docker volume ls --filter "Name=${NAME}*" --format "{{.Name}}" | xargs -r docker volume rm
 	@sudo rm -rf ${DATA_PATH}
 
 re: fclean all
