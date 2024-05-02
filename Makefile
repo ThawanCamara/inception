@@ -41,6 +41,9 @@ down: stop
 stop:
 	@docker compose -p ${NAME} -f ${COMPOSE_FILE} stop
 
+start:
+	@docker compose -p ${NAME} -f ${COMPOSE_FILE} start
+
 log:
 	@docker compose -p ${NAME} -f ${COMPOSE_FILE} logs	
 
